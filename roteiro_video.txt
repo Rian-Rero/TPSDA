@@ -1,0 +1,67 @@
+ROTEIRO DO VÍDEO (máximo 7 minutos) - TP final de SDA
+=====================================================
+
+Antes de gravar:
+  - Prosys aberto, com o Address Space criado e as simulações rodando.
+  - Mosquitto rodando (docker compose up -d).
+  - Node-RED rodando (cd nodered && npm start) e o dashboard aberto há
+    alguns minutos, para os gráficos já terem histórico.
+  - Um terminal com o cliente MQTT já aberto:
+        docker exec -it mosquitto-sda mosquitto_sub -h localhost -t "fabrica/#" -v
+  - Deixe as janelas organizadas: Prosys | Node-RED editor | dashboard | terminal.
+
+-----------------------------------------------------------------------------
+0:00 - 0:30  APRESENTAÇÃO (câmera ligada, os dois aparecem)
+  - Nomes da dupla.
+  - "Escolhemos um tanque de armazenamento com uma bomba de transferência."
+  - Mostrar rapidamente a figura de arquitetura do relatório:
+    Prosys -> OPC UA -> Node-RED -> MQTT -> Mosquitto -> cliente.
+
+0:30 - 1:30  OPC UA (Prosys)
+  - Mostrar o objeto Processo com as pastas Tanque01 e Bomba01.
+  - Mostrar as 5 variáveis, os tipos (Float, Int32, Boolean) e quais
+    são leitura e quais são leitura/escrita.
+  - Mostrar o endpoint opc.tcp://...:53530/OPCUA/SimulationServer e
+    clicar em uma variável para mostrar o NodeId.
+
+1:30 - 2:45  NODE-RED (editor)
+  - Aba 1: nó "Configuração dos NodeIds" (onde ficam os NodeIds),
+    inject de 1 s -> Leitura OPC UA -> join das 5 leituras.
+  - Abrir o nó "Lógica do processo" e explicar os critérios:
+      falha de bombeamento = bomba ligada e vazão < 5 L/min por 3 s;
+      nível alto (limite vem do servidor); nível baixo <= 20 %;
+      temperatura > 40 °C; sem comunicação após 5 s sem leituras.
+  - Aba 2: tópicos MQTT, QoS/retain, alarme só publicado na mudança.
+  - Aba 3: dashboard e escrita OPC UA (chave da bomba e limite de nível).
+
+2:45 - 3:45  DASHBOARD E MQTT EM OPERAÇÃO NORMAL
+  - Dashboard: medidores, estado da bomba, painel NORMAL, 3 gráficos.
+  - Terminal: mensagens chegando em fabrica/linha01/... e o JSON de
+    fabrica/linha01/status (payload estruturado).
+  - Mostrar a escrita OPC UA: mover o limite de nível no dashboard e ver
+    o valor mudar no Prosys.
+
+3:45 - 5:30  FALHA PROVOCADA (parte principal)
+  - Com a bomba LIGADA, no Prosys (Objects > Processo > Bomba01 > Vazao,
+    aba "Value") mudar Min Value/Max Value de 12/16 para 1/3.
+  - Mostrar, nesta ordem:
+      1) o valor chegando via OPC UA (medidor de vazão cai para 1 a 3 L/min);
+      2) após ~3 s o Node-RED identifica: painel vira FALHA (vermelho);
+      3) o dashboard muda: alarme na lista e queda no gráfico;
+      4) o aviso pop-up de alarme;
+      5) a mensagem publicada em fabrica/linha01/alarmes;
+      6) o cliente mosquitto_sub recebendo a mensagem no terminal.
+  - Desligar a bomba pela chave do dashboard: mostrar que o valor muda no
+    Prosys e que o alarme de bombeamento sai (vazão baixa com bomba
+    desligada é esperada).
+  - (Opcional, se der tempo) Temperatura > 40 °C -> estado ALARME.
+
+5:30 - 6:15  FALHA DE COMUNICAÇÃO (opcional)
+  - Parar a simulação/fechar o Prosys: após 5 s, SEM COMUNICAÇÃO no
+    dashboard e no MQTT. Reabrir: a leitura volta sozinha.
+
+6:15 - 7:00  FECHAMENTO
+  - Resumir o papel de cada tecnologia: OPC UA organiza e padroniza o
+    acesso ao equipamento, Node-RED processa e supervisiona, MQTT
+    desacopla quem produz de quem consome.
+  - Lembrar que uma nova aplicação só precisa assinar fabrica/# no broker.

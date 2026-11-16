@@ -1,0 +1,1435 @@
+[
+    {
+        "id": "tab_aquisicao",
+        "type": "tab",
+        "label": "1 - Aquisição OPC UA e Lógica",
+        "disabled": false,
+        "info": "Lê as variáveis do Prosys OPC UA Simulation Server a cada 1 s, monta um único objeto com o estado do processo e aplica a lógica de alarmes."
+    },
+    {
+        "id": "tab_mqtt",
+        "type": "tab",
+        "label": "2 - Publicação MQTT",
+        "disabled": false,
+        "info": "Publica no broker Mosquitto as medições, o status consolidado (JSON) e os alarmes."
+    },
+    {
+        "id": "tab_dashboard",
+        "type": "tab",
+        "label": "3 - Dashboard e Comandos",
+        "disabled": false,
+        "info": "Dashboard de supervisão (FlowFuse Dashboard 2.0) e escrita de comandos no servidor OPC UA."
+    },
+    {
+        "id": "tab_assinante",
+        "type": "tab",
+        "label": "4 - Assinante MQTT (verificação)",
+        "disabled": false,
+        "info": "O Node-RED também atuando como subscriber: assina os tópicos publicados para conferência na aba Debug."
+    },
+    {
+        "id": "cfg_opcua_endpoint",
+        "type": "OpcUa-Endpoint",
+        "name": "Prosys Simulation Server",
+        "endpoint": "opc.tcp://localhost:53530/OPCUA/SimulationServer",
+        "secpol": "None",
+        "secmode": "None",
+        "none": true,
+        "login": false,
+        "usercert": false,
+        "usercertificate": "",
+        "userprivatekey": ""
+    },
+    {
+        "id": "cfg_mqtt_broker",
+        "type": "mqtt-broker",
+        "name": "Mosquitto local",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "nodered-sda-linha01",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "fabrica/linha01/nodered/conexao",
+        "birthQos": "1",
+        "birthRetain": "true",
+        "birthPayload": "online",
+        "birthMsg": {},
+        "closeTopic": "fabrica/linha01/nodered/conexao",
+        "closeQos": "1",
+        "closeRetain": "true",
+        "closePayload": "offline",
+        "closeMsg": {},
+        "willTopic": "fabrica/linha01/nodered/conexao",
+        "willQos": "1",
+        "willRetain": "true",
+        "willPayload": "offline",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "cfg_ui_base",
+        "type": "ui-base",
+        "name": "SDA - Planta Industrial",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "cfg_ui_theme",
+        "type": "ui-theme",
+        "name": "Tema SDA",
+        "colors": {
+            "surface": "#1f3a5f",
+            "primary": "#1f6fb2",
+            "bgPage": "#eef2f6",
+            "groupBg": "#ffffff",
+            "groupOutline": "#d5dde6"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "6px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "cfg_ui_page",
+        "type": "ui-page",
+        "name": "Supervisão da Planta",
+        "ui": "cfg_ui_base",
+        "path": "/supervisao",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "cfg_ui_theme",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Small Desktop",
+                "px": 768,
+                "cols": 9
+            },
+            {
+                "name": "Desktop",
+                "px": 1024,
+                "cols": 12
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "grp_tanque",
+        "type": "ui-group",
+        "name": "Tanque 01",
+        "page": "cfg_ui_page",
+        "width": "4",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "grp_bomba",
+        "type": "ui-group",
+        "name": "Bomba 01",
+        "page": "cfg_ui_page",
+        "width": "4",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "grp_alarmes",
+        "type": "ui-group",
+        "name": "Estado da planta e alarmes",
+        "page": "cfg_ui_page",
+        "width": "4",
+        "height": "1",
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "grp_graf_nivel",
+        "type": "ui-group",
+        "name": "Nível do tanque (%)",
+        "page": "cfg_ui_page",
+        "width": "6",
+        "height": "1",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "grp_graf_vazao",
+        "type": "ui-group",
+        "name": "Vazão da bomba (L/min)",
+        "page": "cfg_ui_page",
+        "width": "6",
+        "height": "1",
+        "order": 5,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "grp_graf_temp",
+        "type": "ui-group",
+        "name": "Temperatura do tanque (°C)",
+        "page": "cfg_ui_page",
+        "width": "12",
+        "height": "1",
+        "order": 6,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "c1_titulo",
+        "type": "comment",
+        "z": "tab_aquisicao",
+        "name": "Aquisição das variáveis via OPC UA (leitura cíclica, 1 s)",
+        "info": "Os NodeIds ficam centralizados no nó \"Configuração dos NodeIds\".\nSe o seu Prosys gerar NodeIds diferentes, altere apenas esse nó.",
+        "x": 260,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "n1_inj_cfg",
+        "type": "inject",
+        "z": "tab_aquisicao",
+        "name": "Ao iniciar",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.1",
+        "topic": "",
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "n1_cfg"
+            ]
+        ]
+    },
+    {
+        "id": "n1_cfg",
+        "type": "function",
+        "z": "tab_aquisicao",
+        "name": "Configuração dos NodeIds",
+        "outputs": 0,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 100,
+        "wires": [],
+        "func": "// Variáveis do Prosys OPC UA Simulation Server utilizadas no trabalho.\n// Objeto Processo > pastas Tanque01 e Bomba01 (namespace ns=3 do Prosys).\n// Se os NodeIds no seu servidor forem diferentes, altere SOMENTE aqui.\nglobal.set('opcua', {\n    nivel:           { nodeId: 'ns=3;s=Tanque01.Nivel',           tipo: 'Float'   }, // %       (leitura)\n    temperatura:     { nodeId: 'ns=3;s=Tanque01.Temperatura',     tipo: 'Float'   }, // °C      (leitura)\n    limiteNivelAlto: { nodeId: 'ns=3;s=Tanque01.LimiteNivelAlto', tipo: 'Int32'   }, // %       (leitura/escrita)\n    bombaLigada:     { nodeId: 'ns=3;s=Bomba01.Ligada',           tipo: 'Boolean' }, // on/off  (leitura/escrita)\n    vazao:           { nodeId: 'ns=3;s=Bomba01.Vazao',            tipo: 'Float'   }  // L/min   (leitura)\n});\nnode.status({ fill: 'green', shape: 'dot', text: 'NodeIds carregados' });\nreturn null;"
+    },
+    {
+        "id": "n1_inj_ciclo",
+        "type": "inject",
+        "z": "tab_aquisicao",
+        "name": "A cada 1 s",
+        "props": [],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "2",
+        "topic": "",
+        "x": 130,
+        "y": 180,
+        "wires": [
+            [
+                "n1_lista"
+            ]
+        ]
+    },
+    {
+        "id": "n1_lista",
+        "type": "function",
+        "z": "tab_aquisicao",
+        "name": "Gerar pedidos de leitura",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 180,
+        "wires": [
+            [
+                "n1_client_read"
+            ]
+        ],
+        "func": "// Gera uma mensagem de leitura para cada variável configurada.\n// msg.topic = NodeId (é o que o nó OPC UA Client usa para ler)\nconst cfg = global.get('opcua');\nif (!cfg) return null;\nconst msgs = Object.keys(cfg).map(nome => ({\n    topic: cfg[nome].nodeId,\n    datatype: cfg[nome].tipo,\n    variavel: nome,\n    payload: ''\n}));\nreturn [msgs];"
+    },
+    {
+        "id": "n1_client_read",
+        "type": "OpcUa-Client",
+        "z": "tab_aquisicao",
+        "endpoint": "cfg_opcua_endpoint",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "Leitura OPC UA",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 560,
+        "y": 180,
+        "wires": [
+            [
+                "n1_renomear"
+            ],
+            [
+                "n1_filtro_erro"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "n1_filtro_erro",
+        "type": "switch",
+        "z": "tab_aquisicao",
+        "name": "Somente erros",
+        "property": "error",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 790,
+        "y": 240,
+        "wires": [
+            [
+                "n1_debug_erro"
+            ]
+        ]
+    },
+    {
+        "id": "n1_debug_erro",
+        "type": "debug",
+        "z": "tab_aquisicao",
+        "name": "Erros OPC UA",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 990,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "n1_renomear",
+        "type": "change",
+        "z": "tab_aquisicao",
+        "name": "topic = nome da variável",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "variavel",
+                "tot": "msg"
+            }
+        ],
+        "x": 790,
+        "y": 180,
+        "wires": [
+            [
+                "n1_join"
+            ]
+        ]
+    },
+    {
+        "id": "n1_join",
+        "type": "join",
+        "z": "tab_aquisicao",
+        "name": "Agrupar as 5 leituras",
+        "mode": "custom",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "useparts": false,
+        "accumulate": false,
+        "timeout": "0.9",
+        "count": "5",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 1010,
+        "y": 180,
+        "wires": [
+            [
+                "n1_logica"
+            ]
+        ]
+    },
+    {
+        "id": "c1_logica",
+        "type": "comment",
+        "z": "tab_aquisicao",
+        "name": "Processamento: estados e alarmes inferidos a partir das variáveis",
+        "info": "Critérios documentados no próprio nó e no relatório.",
+        "x": 290,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "n1_logica",
+        "type": "function",
+        "z": "tab_aquisicao",
+        "name": "Lógica do processo (alarmes)",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 230,
+        "y": 380,
+        "wires": [
+            [
+                "n1_link_out",
+                "n1_watchdog",
+                "n1_debug_estado"
+            ]
+        ],
+        "func": "// ------------------------------------------------------------------\n// Limites utilizados (justificativa no relatório)\nconst NIVEL_BAIXO        = 20;  // %      abaixo disso a bomba corre risco de operar a seco\nconst TEMP_MAXIMA        = 40;  // °C     operação normal simulada: 25 a 35 °C\nconst VAZAO_MINIMA       = 5;   // L/min  operação normal simulada: 12 a 16 L/min\nconst CICLOS_CONFIRMACAO = 3;   // leituras seguidas (~3 s) para confirmar falha de bombeamento\n// ------------------------------------------------------------------\n\nconst d = msg.payload;   // { nivel, temperatura, vazao, bombaLigada, limiteNivelAlto }\nconst faltando = ['nivel', 'temperatura', 'vazao', 'bombaLigada', 'limiteNivelAlto']\n    .filter(k => d[k] === undefined || d[k] === null);\nif (faltando.length) {\n    node.status({ fill: 'yellow', shape: 'ring', text: 'leitura incompleta: ' + faltando.join(', ') });\n    return null;\n}\nconst r1 = (x) => Math.round(Number(x) * 10) / 10;\nconst nivel = r1(d.nivel), temperatura = r1(d.temperatura), vazao = r1(d.vazao);\nconst bombaLigada = Boolean(d.bombaLigada);\nconst limiteNivelAlto = Number(d.limiteNivelAlto);\n\n// 1) Possível falha de bombeamento: bomba LIGADA e vazão abaixo do mínimo,\n//    confirmada por CICLOS_CONFIRMACAO leituras consecutivas.\nlet contador = context.get('contadorFalha') || 0;\ncontador = (bombaLigada && vazao < VAZAO_MINIMA) ? contador + 1 : 0;\ncontext.set('contadorFalha', contador);\nconst falhaBombeamento = contador >= CICLOS_CONFIRMACAO;\n\nconst alarmes = [];\nif (falhaBombeamento) alarmes.push({ codigo: 'FALHA_BOMBEAMENTO', severidade: 'falha',\n    mensagem: `Possível falha de bombeamento: bomba ligada com vazão de ${vazao} L/min (mínimo ${VAZAO_MINIMA} L/min)` });\n// 2) Nível alto: limite lido do próprio servidor OPC UA (ajustável pelo operador)\nif (nivel >= limiteNivelAlto) alarmes.push({ codigo: 'NIVEL_ALTO', severidade: 'alarme',\n    mensagem: `Nível alto: ${nivel} % (limite ${limiteNivelAlto} %)` });\n// 3) Nível baixo\nif (nivel <= NIVEL_BAIXO) alarmes.push({ codigo: 'NIVEL_BAIXO', severidade: 'alarme',\n    mensagem: `Nível baixo: ${nivel} % (limite ${NIVEL_BAIXO} %)` });\n// 4) Temperatura alta\nif (temperatura > TEMP_MAXIMA) alarmes.push({ codigo: 'TEMPERATURA_ALTA', severidade: 'alarme',\n    mensagem: `Temperatura alta: ${temperatura} °C (limite ${TEMP_MAXIMA} °C)` });\n\n// Estado geral da planta\nlet estadoPlanta = 'NORMAL';\nif (alarmes.length) estadoPlanta = 'ALARME';\nif (falhaBombeamento) estadoPlanta = 'FALHA';\n\nmsg.payload = {\n    timestamp: new Date().toISOString(),\n    nivel, temperatura, vazao, bombaLigada, limiteNivelAlto,\n    estadoBomba: bombaLigada ? 'LIGADA' : 'DESLIGADA',\n    estadoPlanta,\n    comunicacaoOk: true,\n    alarmes,\n    limites: { nivelBaixo: NIVEL_BAIXO, temperaturaMaxima: TEMP_MAXIMA, vazaoMinima: VAZAO_MINIMA }\n};\nnode.status({ fill: estadoPlanta === 'NORMAL' ? 'green' : 'red', shape: 'dot',\n    text: `${estadoPlanta} | N=${nivel}% T=${temperatura}°C Q=${vazao}L/min` });\nreturn msg;"
+    },
+    {
+        "id": "n1_debug_estado",
+        "type": "debug",
+        "z": "tab_aquisicao",
+        "name": "Estado do processo",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "n1_watchdog",
+        "type": "trigger",
+        "z": "tab_aquisicao",
+        "name": "Sem dados por 5 s?",
+        "op1": "",
+        "op2": "timeout",
+        "op1type": "nul",
+        "op2type": "str",
+        "duration": "5",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 500,
+        "y": 500,
+        "wires": [
+            [
+                "n1_semcom"
+            ]
+        ]
+    },
+    {
+        "id": "n1_semcom",
+        "type": "function",
+        "z": "tab_aquisicao",
+        "name": "Estado: sem comunicação",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 500,
+        "wires": [
+            [
+                "n1_link_out"
+            ]
+        ],
+        "func": "// Nenhuma leitura completa chegou nos últimos 5 s: servidor OPC UA parado ou inacessível.\nmsg.payload = {\n    timestamp: new Date().toISOString(),\n    estadoPlanta: 'SEM COMUNICAÇÃO',\n    comunicacaoOk: false,\n    alarmes: [{ codigo: 'FALHA_COMUNICACAO_OPCUA', severidade: 'falha',\n                mensagem: 'Sem leituras do servidor OPC UA há mais de 5 s' }]\n};\nnode.status({ fill: 'red', shape: 'ring', text: 'sem comunicação' });\nreturn msg;"
+    },
+    {
+        "id": "n1_link_out",
+        "type": "link out",
+        "z": "tab_aquisicao",
+        "name": "Estado do processo",
+        "mode": "link",
+        "links": [
+            "n2_link_in",
+            "n3_link_in"
+        ],
+        "x": 945,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "c2_titulo",
+        "type": "comment",
+        "z": "tab_mqtt",
+        "name": "Publicação no broker MQTT (Mosquitto)",
+        "info": "Medições: QoS 0, sem retain (valor muda a cada segundo).\nStatus consolidado e alarmes: QoS 1, retain (novo assinante recebe o último estado na hora).",
+        "x": 210,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "n2_link_in",
+        "type": "link in",
+        "z": "tab_mqtt",
+        "name": "Estado do processo",
+        "links": [
+            "n1_link_out"
+        ],
+        "x": 95,
+        "y": 120,
+        "wires": [
+            [
+                "n2_topicos",
+                "n2_alarmes"
+            ]
+        ]
+    },
+    {
+        "id": "n2_topicos",
+        "type": "function",
+        "z": "tab_mqtt",
+        "name": "Medições e status (tópicos)",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 100,
+        "wires": [
+            [
+                "n2_mqtt_out"
+            ]
+        ],
+        "func": "const s = msg.payload;\nif (!s.comunicacaoOk) return null;   // sem dados novos para publicar\nconst base = 'fabrica/linha01';\nconst m = (topic, payload, qos, retain) => ({ topic, payload, qos, retain });\nreturn [[\n    m(`${base}/tanque01/nivel`,       s.nivel,       0, false),\n    m(`${base}/tanque01/temperatura`, s.temperatura, 0, false),\n    m(`${base}/bomba01/vazao`,        s.vazao,       0, false),\n    m(`${base}/bomba01/estado`,       s.estadoBomba, 1, true),\n    // payload estruturado com várias informações\n    m(`${base}/status`, {\n        timestamp: s.timestamp,\n        tanque01: { nivel: s.nivel, temperatura: s.temperatura, limiteNivelAlto: s.limiteNivelAlto },\n        bomba01:  { estado: s.estadoBomba, vazao: s.vazao },\n        estadoPlanta: s.estadoPlanta,\n        alarmesAtivos: s.alarmes.map(a => a.codigo)\n    }, 1, true)\n]];"
+    },
+    {
+        "id": "n2_alarmes",
+        "type": "function",
+        "z": "tab_mqtt",
+        "name": "Alarmes (somente na mudança)",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 160,
+        "wires": [
+            [
+                "n2_mqtt_out",
+                "n2_debug"
+            ]
+        ],
+        "func": "// Publica em fabrica/linha01/alarmes apenas quando o conjunto de alarmes muda\n// (entrada ou saída de alarme), evitando repetir a mesma mensagem a cada segundo.\nconst s = msg.payload;\nconst assinatura = s.estadoPlanta + '|' + s.alarmes.map(a => a.codigo).sort().join(',');\nif (context.get('ultima') === assinatura) return null;\ncontext.set('ultima', assinatura);\nmsg.topic = 'fabrica/linha01/alarmes';\nmsg.qos = 1;\nmsg.retain = true;\nmsg.payload = {\n    timestamp: s.timestamp,\n    estadoPlanta: s.estadoPlanta,\n    quantidade: s.alarmes.length,\n    alarmes: s.alarmes\n};\nreturn msg;"
+    },
+    {
+        "id": "n2_mqtt_out",
+        "type": "mqtt out",
+        "z": "tab_mqtt",
+        "name": "Mosquitto",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cfg_mqtt_broker",
+        "x": 600,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "n2_debug",
+        "type": "debug",
+        "z": "tab_mqtt",
+        "name": "Alarmes publicados",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.estadoPlanta",
+        "statusType": "msg",
+        "x": 620,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "c3_titulo",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Dashboard: http://localhost:1880/dashboard",
+        "info": "",
+        "x": 200,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "n3_link_in",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Estado do processo",
+        "links": [
+            "n1_link_out"
+        ],
+        "x": 95,
+        "y": 260,
+        "wires": [
+            [
+                "n3_separar",
+                "n3_tpl_alarmes",
+                "n3_notif_fn"
+            ]
+        ]
+    },
+    {
+        "id": "n3_separar",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Separar valores",
+        "outputs": 6,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 200,
+        "outputLabels": [
+            "nível",
+            "temperatura",
+            "vazão",
+            "estado da bomba",
+            "gráfico nível + limite",
+            "limite nível alto"
+        ],
+        "wires": [
+            [
+                "n3_g_nivel"
+            ],
+            [
+                "n3_g_temp",
+                "n3_c_temp"
+            ],
+            [
+                "n3_g_vazao",
+                "n3_c_vazao"
+            ],
+            [
+                "n3_tpl_bomba",
+                "n3_rbe_bomba"
+            ],
+            [
+                "n3_c_nivel"
+            ],
+            [
+                "n3_rbe_limite"
+            ]
+        ],
+        "func": "const s = msg.payload;\nif (!s.comunicacaoOk) return null;\nreturn [\n    { payload: s.nivel },\n    { payload: s.temperatura, topic: 'Temperatura' },\n    { payload: s.vazao, topic: 'Vazão' },\n    { payload: s.bombaLigada },\n    [ { payload: s.nivel, topic: 'Nível' }, { payload: s.limiteNivelAlto, topic: 'Limite nível alto' } ],\n    { payload: s.limiteNivelAlto }\n];"
+    },
+    {
+        "id": "n3_g_nivel",
+        "type": "ui-gauge",
+        "z": "tab_dashboard",
+        "name": "Nível",
+        "group": "grp_tanque",
+        "order": 1,
+        "width": 4,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Nível",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "%",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#d32f2f"
+            },
+            {
+                "from": "20",
+                "color": "#1f6fb2"
+            },
+            {
+                "from": "90",
+                "color": "#d32f2f"
+            }
+        ],
+        "min": 0,
+        "max": 100,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 560,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "n3_g_temp",
+        "type": "ui-gauge",
+        "z": "tab_dashboard",
+        "name": "Temperatura",
+        "group": "grp_tanque",
+        "order": 2,
+        "width": 4,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Temperatura",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "°C",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#1f6fb2"
+            },
+            {
+                "from": "40",
+                "color": "#d32f2f"
+            }
+        ],
+        "min": 0,
+        "max": 60,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 560,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "n3_g_vazao",
+        "type": "ui-gauge",
+        "z": "tab_dashboard",
+        "name": "Vazão",
+        "group": "grp_bomba",
+        "order": 2,
+        "width": 4,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Vazão",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "L/min",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#d32f2f"
+            },
+            {
+                "from": "5",
+                "color": "#2e7d32"
+            }
+        ],
+        "min": 0,
+        "max": 25,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 560,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "n3_tpl_bomba",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "grp_bomba",
+        "page": "",
+        "ui": "",
+        "name": "Estado da bomba",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n  <div class=\"bomba\">\n    <span class=\"rotulo\">Estado da bomba</span>\n    <span class=\"badge\" :class=\"msg?.payload ? 'ligada' : 'desligada'\">\n      {{ msg?.payload === undefined ? '---' : (msg.payload ? 'LIGADA' : 'DESLIGADA') }}\n    </span>\n  </div>\n</template>\n<style scoped>\n.bomba { display: flex; align-items: center; justify-content: space-between; width: 100%; }\n.rotulo { color: #555; }\n.badge { padding: 6px 16px; border-radius: 4px; font-weight: 700; color: #fff; background: #9e9e9e; }\n.ligada { background: #2e7d32; }\n.desligada { background: #757575; }\n</style>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 570,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "n3_c_nivel",
+        "type": "ui-chart",
+        "z": "tab_dashboard",
+        "group": "grp_graf_nivel",
+        "name": "Gráfico nível",
+        "label": "",
+        "order": 1,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Hora",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "100",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": 4,
+        "showLegend": true,
+        "removeOlder": "10",
+        "removeOlderUnit": "60",
+        "removeOlderPoints": "",
+        "colors": [
+            "#1f6fb2",
+            "#d32f2f",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": 0,
+        "height": 6,
+        "className": "",
+        "interpolation": "linear",
+        "x": 560,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "n3_c_vazao",
+        "type": "ui-chart",
+        "z": "tab_dashboard",
+        "group": "grp_graf_vazao",
+        "name": "Gráfico vazão",
+        "label": "",
+        "order": 1,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Hora",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "L/min",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "25",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": 4,
+        "showLegend": true,
+        "removeOlder": "10",
+        "removeOlderUnit": "60",
+        "removeOlderPoints": "",
+        "colors": [
+            "#2e7d32",
+            "#d32f2f",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": 0,
+        "height": 6,
+        "className": "",
+        "interpolation": "linear",
+        "x": 560,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "n3_c_temp",
+        "type": "ui-chart",
+        "z": "tab_dashboard",
+        "group": "grp_graf_temp",
+        "name": "Gráfico temperatura",
+        "label": "",
+        "order": 1,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Hora",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "°C",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "60",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": 4,
+        "showLegend": true,
+        "removeOlder": "10",
+        "removeOlderUnit": "60",
+        "removeOlderPoints": "",
+        "colors": [
+            "#ff7f0e",
+            "#d32f2f",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": 0,
+        "height": 6,
+        "className": "",
+        "interpolation": "linear",
+        "x": 560,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "n3_tpl_alarmes",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "grp_alarmes",
+        "page": "",
+        "ui": "",
+        "name": "Estado da planta e alarmes",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n  <div class=\"painel\">\n    <div class=\"estado\" :class=\"classeEstado\">{{ estado }}</div>\n    <div class=\"linha\">\n      Comunicação OPC UA:\n      <b :class=\"comOk ? 'ok' : 'nok'\">{{ comOk ? 'OK' : 'FALHA' }}</b>\n    </div>\n    <div class=\"linha\" v-if=\"msg?.payload?.timestamp\">\n      Última atualização: {{ new Date(msg.payload.timestamp).toLocaleTimeString('pt-BR') }}\n    </div>\n    <div v-if=\"alarmes.length === 0\" class=\"sem-alarme\">&#10004; Nenhum alarme ativo</div>\n    <ul v-else class=\"lista\">\n      <li v-for=\"a in alarmes\" :key=\"a.codigo\" :class=\"a.severidade\">{{ a.mensagem }}</li>\n    </ul>\n  </div>\n</template>\n<script>\nexport default {\n  computed: {\n    estado () { return this.msg?.payload?.estadoPlanta || 'AGUARDANDO DADOS' },\n    comOk () { return this.msg?.payload ? this.msg.payload.comunicacaoOk : false },\n    alarmes () { return this.msg?.payload?.alarmes || [] },\n    classeEstado () {\n      const e = this.estado\n      if (e === 'NORMAL') return 'normal'\n      if (e === 'ALARME') return 'alarme'\n      if (e === 'AGUARDANDO DADOS') return 'aguardando'\n      return 'falha'\n    }\n  }\n}\n</script>\n<style scoped>\n.painel { width: 100%; }\n.estado { text-align: center; font-size: 1.4rem; font-weight: 700; padding: 10px; border-radius: 6px; color: #fff; margin-bottom: 8px; }\n.normal { background: #2e7d32; }\n.alarme { background: #ef6c00; }\n.falha { background: #c62828; animation: piscar 1s infinite; }\n.aguardando { background: #9e9e9e; }\n@keyframes piscar { 50% { opacity: .55; } }\n.linha { color: #555; font-size: .9rem; margin: 2px 0; }\n.ok { color: #2e7d32; }\n.nok { color: #c62828; }\n.sem-alarme { margin-top: 10px; padding: 8px; border-radius: 4px; background: #e8f5e9; color: #2e7d32; }\n.lista { list-style: none; padding: 0; margin: 10px 0 0 0; }\n.lista li { padding: 8px; border-radius: 4px; margin-bottom: 6px; font-weight: 600; }\n.lista li.alarme { background: #fff3e0; color: #e65100; border-left: 5px solid #ef6c00; }\n.lista li.falha { background: #ffebee; color: #b71c1c; border-left: 5px solid #c62828; }\n</style>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 330,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "n3_notif_fn",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Novo alarme? (pop-up)",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 500,
+        "wires": [
+            [
+                "n3_notif"
+            ]
+        ],
+        "func": "// Mostra um aviso apenas quando aparece um alarme que não estava ativo antes\nconst atuais = (msg.payload.alarmes || []).map(a => a.codigo);\nconst anteriores = context.get('anteriores') || [];\ncontext.set('anteriores', atuais);\nconst novos = (msg.payload.alarmes || []).filter(a => !anteriores.includes(a.codigo));\nif (!novos.length) return null;\nmsg.payload = novos.map(a => a.mensagem).join(' | ');\nreturn msg;"
+    },
+    {
+        "id": "n3_notif",
+        "type": "ui-notification",
+        "z": "tab_dashboard",
+        "ui": "cfg_ui_base",
+        "position": "top right",
+        "colorDefault": false,
+        "color": "#c62828",
+        "displayTime": "6",
+        "showCountdown": true,
+        "outputs": 0,
+        "allowDismiss": true,
+        "dismissText": "Fechar",
+        "allowConfirm": false,
+        "confirmText": "Confirmar",
+        "raw": false,
+        "className": "",
+        "name": "Aviso de alarme",
+        "x": 560,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "c3_cmd",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Comandos do operador: escrita no servidor OPC UA",
+        "info": "",
+        "x": 230,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "n3_rbe_bomba",
+        "type": "rbe",
+        "z": "tab_dashboard",
+        "name": "só na mudança",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 570,
+        "y": 640,
+        "wires": [
+            [
+                "n3_sw_bomba"
+            ]
+        ]
+    },
+    {
+        "id": "n3_sw_bomba",
+        "type": "ui-switch",
+        "z": "tab_dashboard",
+        "name": "Comando da bomba",
+        "label": "Comando da bomba",
+        "group": "grp_bomba",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "decouple": false,
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "#2e7d32",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 790,
+        "y": 640,
+        "wires": [
+            [
+                "n3_cmd_bomba"
+            ]
+        ]
+    },
+    {
+        "id": "n3_cmd_bomba",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Escrever Bomba01.Ligada",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 640,
+        "wires": [
+            [
+                "n3_client_write"
+            ]
+        ],
+        "func": "const v = global.get('opcua').bombaLigada;\nmsg.topic = v.nodeId;\nmsg.datatype = v.tipo;      // Boolean\nmsg.payload = Boolean(msg.payload);\nreturn msg;"
+    },
+    {
+        "id": "n3_rbe_limite",
+        "type": "rbe",
+        "z": "tab_dashboard",
+        "name": "só na mudança",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 570,
+        "y": 700,
+        "wires": [
+            [
+                "n3_sl_limite"
+            ]
+        ]
+    },
+    {
+        "id": "n3_sl_limite",
+        "type": "ui-slider",
+        "z": "tab_dashboard",
+        "group": "grp_tanque",
+        "name": "Limite de nível alto",
+        "label": "Limite de nível alto (%)",
+        "tooltip": "",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "thumbLabel": "always",
+        "showTicks": "false",
+        "min": 50,
+        "max": 100,
+        "step": 1,
+        "className": "",
+        "iconPrepend": "",
+        "iconAppend": "",
+        "color": "",
+        "colorTrack": "",
+        "colorThumb": "",
+        "showTextField": true,
+        "x": 790,
+        "y": 700,
+        "wires": [
+            [
+                "n3_cmd_limite"
+            ]
+        ]
+    },
+    {
+        "id": "n3_cmd_limite",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Escrever Tanque01.LimiteNivelAlto",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 700,
+        "wires": [
+            [
+                "n3_client_write"
+            ]
+        ],
+        "func": "const v = global.get('opcua').limiteNivelAlto;\nmsg.topic = v.nodeId;\nmsg.datatype = v.tipo;      // Int32\nmsg.payload = Math.round(Number(msg.payload));\nreturn msg;"
+    },
+    {
+        "id": "n3_client_write",
+        "type": "OpcUa-Client",
+        "z": "tab_dashboard",
+        "endpoint": "cfg_opcua_endpoint",
+        "action": "write",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "Escrita OPC UA",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 1300,
+        "y": 670,
+        "wires": [
+            [
+                "n3_debug_write"
+            ],
+            [
+                "n3_debug_write"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "n3_debug_write",
+        "type": "debug",
+        "z": "tab_dashboard",
+        "name": "Resultado da escrita",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1310,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "c4_titulo",
+        "type": "comment",
+        "z": "tab_assinante",
+        "name": "Node-RED como subscriber: assina o que ele mesmo publicou",
+        "info": "",
+        "x": 250,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "n4_mqtt_alarmes",
+        "type": "mqtt in",
+        "z": "tab_assinante",
+        "name": "fabrica/linha01/alarmes",
+        "topic": "fabrica/linha01/alarmes",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "cfg_mqtt_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "n4_debug_alarmes"
+            ]
+        ]
+    },
+    {
+        "id": "n4_debug_alarmes",
+        "type": "debug",
+        "z": "tab_assinante",
+        "name": "Alarmes recebidos",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.estadoPlanta",
+        "statusType": "msg",
+        "x": 420,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "n4_mqtt_tudo",
+        "type": "mqtt in",
+        "z": "tab_assinante",
+        "name": "fabrica/#",
+        "topic": "fabrica/#",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "cfg_mqtt_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 160,
+        "wires": [
+            [
+                "n4_debug_tudo"
+            ]
+        ]
+    },
+    {
+        "id": "n4_debug_tudo",
+        "type": "debug",
+        "z": "tab_assinante",
+        "name": "Tudo de fabrica/#",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 420,
+        "y": 160,
+        "wires": []
+    }
+]

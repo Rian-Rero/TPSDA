@@ -1,0 +1,12 @@
+# Broker MQTT (Eclipse Mosquitto) para o TP final de SDA
+# Subir:   docker compose up -d
+# Parar:   docker compose down
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto-sda
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
